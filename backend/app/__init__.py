@@ -1,0 +1,1 @@
+"""StoryGen backend application package."""
