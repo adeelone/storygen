@@ -1,0 +1,35 @@
+services:
+  backend:
+    build: ./backend
+    env_file: .env
+    ports: ["8000:8000"]
+    volumes: ["storygen-data:/service/.data"]
+    depends_on: [redis, postgres, minio]
+  frontend:
+    build: ./frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports: ["3000:3000"]
+    depends_on: [backend]
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: storygen
+      POSTGRES_USER: storygen
+      POSTGRES_PASSWORD: local-storygen
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: storygen-local
+      MINIO_ROOT_PASSWORD: local-development-only
+    ports: ["9000:9000", "9001:9001"]
+    volumes: ["minio-data:/data"]
+volumes:
+  storygen-data:
+  postgres-data:
+  minio-data:
