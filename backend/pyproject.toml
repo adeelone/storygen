@@ -20,7 +20,7 @@ dev = [
   "pytest-cov==6.0.0",
   "ruff==0.8.4",
 ]
-cloud = ["google-cloud-aiplatform==1.75.0", "google-cloud-storage==2.19.0", "redis==5.2.1"]
+cloud = ["google-cloud-aiplatform==1.75.0", "google-cloud-storage==3.10.1", "redis==5.2.1"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=app --cov-report=term-missing --cov-fail-under=80"
