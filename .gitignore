@@ -1,0 +1,54 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+secrets/
+service-account*.json
+*.pem
+*.key
+
+# Operating systems and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+htmlcov/
+.coverage*
+*.egg-info/
+.test-tmp/
+pytest-cache-files-*/
+
+# Node / Next
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+playwright-report/
+test-results/
+
+# Runtime storage and logs
+.data/
+.runtime/
+reports/
+*.log
+minio-data/
+postgres-data/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform.lock.hcl
