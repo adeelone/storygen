@@ -1,0 +1,46 @@
+name: Deploy
+on:
+  push:
+    tags: ["v*.*.*"]
+permissions:
+  contents: read
+  id-token: write
+env:
+  REGION: us-central1
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  WIF_PROVIDER: ${{ secrets.WIF_PROVIDER }}
+  DEPLOY_SERVICE_ACCOUNT: ${{ secrets.DEPLOY_SERVICE_ACCOUNT }}
+jobs:
+  cloud-run:
+    name: Deploy Cloud Run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        if: ${{ env.PROJECT_ID != '' && env.WIF_PROVIDER != '' && env.DEPLOY_SERVICE_ACCOUNT != '' }}
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+        if: ${{ env.PROJECT_ID != '' && env.WIF_PROVIDER != '' && env.DEPLOY_SERVICE_ACCOUNT != '' }}
+      - run: gcloud auth configure-docker us-docker.pkg.dev --quiet
+        if: ${{ env.PROJECT_ID != '' && env.WIF_PROVIDER != '' && env.DEPLOY_SERVICE_ACCOUNT != '' }}
+      - name: Build and push containers
+        if: ${{ env.PROJECT_ID != '' && env.WIF_PROVIDER != '' && env.DEPLOY_SERVICE_ACCOUNT != '' }}
+        run: |
+          docker build -t "us-docker.pkg.dev/${PROJECT_ID}/storygen/backend:${GITHUB_REF_NAME}" backend
+          docker build -t "us-docker.pkg.dev/${PROJECT_ID}/storygen/frontend:${GITHUB_REF_NAME}" frontend
+          docker push "us-docker.pkg.dev/${PROJECT_ID}/storygen/backend:${GITHUB_REF_NAME}"
+          docker push "us-docker.pkg.dev/${PROJECT_ID}/storygen/frontend:${GITHUB_REF_NAME}"
+      - uses: hashicorp/setup-terraform@v3
+        if: ${{ env.PROJECT_ID != '' && env.WIF_PROVIDER != '' && env.DEPLOY_SERVICE_ACCOUNT != '' }}
+      - name: Apply infrastructure release
+        if: ${{ env.PROJECT_ID != '' && env.WIF_PROVIDER != '' && env.DEPLOY_SERVICE_ACCOUNT != '' }}
+        working-directory: infra/terraform
+        run: |
+          terraform init
+          terraform apply -auto-approve \
+            -var="project_id=${PROJECT_ID}" \
+            -var="region=${REGION}" \
+            -var="backend_image=us-docker.pkg.dev/${PROJECT_ID}/storygen/backend:${GITHUB_REF_NAME}" \
+            -var="frontend_image=us-docker.pkg.dev/${PROJECT_ID}/storygen/frontend:${GITHUB_REF_NAME}"
