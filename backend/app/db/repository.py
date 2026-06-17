@@ -9,8 +9,8 @@ from app.models import StoryRecord
 class StoryRepository:
     """Small JSON repository for local/dev operation.
 
-    The interface is deliberately storage-neutral so Cloud SQL/SQLAlchemy can
-    be introduced behind it without disturbing API or pipeline code.
+    The interface stays storage-neutral so Cloud SQL/SQLAlchemy can be added
+    without disturbing API or pipeline code.
     """
 
     def __init__(self, path: Path) -> None:
@@ -67,3 +67,7 @@ class StoryRepository:
             ),
             "estimated_cost_usd_today": round(sum(story.estimated_cost_usd for story in daily), 4),
         }
+
+    def count_today(self) -> int:
+        today = datetime.now(UTC).date()
+        return sum(1 for story in self.list() if story.created_at.date() == today)

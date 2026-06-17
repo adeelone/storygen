@@ -101,7 +101,7 @@ class MockTextProvider(TextProvider):
     async def stream_scene(self, plan: StoryPlan, scene: SceneOutline, request: PromptInput) -> AsyncIterator[str]:
         lead = plan.characters[0].name
         friend = plan.characters[1].name
-        paragraphs = {
+        english = {
             1: [
                 f"In {plan.world.setting}, {lead} tucked a small compass into a green satchel while {friend}'s lantern hummed a happy tune.",
                 "Together they gathered silver leaves, because even a tiny light could make bedtime feel safe and bright.",
@@ -118,7 +118,32 @@ class MockTextProvider(TextProvider):
                 "Back in the clearing, the returned flame skipped from lantern to lantern until the branches looked full of stars.",
                 f"{lead} smiled at {friend}. Courage, they learned, glows brightest when friends carry it together.",
             ],
-        }[scene.number]
+        }
+        spanish = {
+            1: [
+                f"En {plan.world.setting}, {lead} guardó una brújula pequeña mientras la lámpara de {friend} cantaba suave.",
+                "Juntos recogieron hojas plateadas para que la noche se sintiera tranquila y luminosa.",
+            ],
+            2: [
+                "Entonces un viento juguetón llevó la llama dorada al otro lado del arroyo.",
+                f'"Podemos traerla a casa", dijo {lead}, y {friend} brilló dos veces para decir que sí.',
+            ],
+            3: [
+                f"En la colina, {lead} sostuvo la brújula firme mientras {friend} protegía la llama del viento.",
+                "Paso a paso, sus dos luces se unieron en un resplandor que no se apagó.",
+            ],
+            4: [
+                "De vuelta en el claro, la llama saltó de farol en farol hasta llenar las ramas de estrellas.",
+                f"{lead} sonrió a {friend}. La valentía brilla más cuando los amigos la comparten.",
+            ],
+        }
+        paragraphs = (spanish if request.language.lower().startswith("spanish") else english)[scene.number]
+        if request.length.value == "short":
+            paragraphs = paragraphs[:1]
+        elif request.length.value == "long":
+            paragraphs = paragraphs + [
+                f"The memory of {scene.emotional_beat} stayed with them like a warm pocket light."
+            ]
         for paragraph in paragraphs:
             await asyncio.sleep(0)
             yield paragraph

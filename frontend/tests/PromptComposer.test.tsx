@@ -37,11 +37,20 @@ describe("PromptComposer", () => {
 
   it("creates a guided story request", async () => {
     render(<PromptComposer />);
-    fireEvent.click(screen.getByText("Use guided bedtime settings"));
+    fireEvent.click(screen.getByText("Use guided story settings"));
+    fireEvent.change(screen.getByLabelText("Language"), {
+      target: { value: "Spanish" },
+    });
+    fireEvent.change(screen.getByLabelText("Length"), {
+      target: { value: "long" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Create my story" }));
     await waitFor(() =>
       expect(useStoryStore.getState().status).toBe("creating"),
     );
     expect(fetch).toHaveBeenCalled();
+    expect(
+      JSON.parse(vi.mocked(fetch).mock.calls[0][1]?.body as string).language,
+    ).toBe("Spanish");
   });
 });

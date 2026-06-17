@@ -111,6 +111,27 @@ input {
   resize: vertical;
   background: white;
 }
+.composer input,
+.composer select {
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 10px 12px;
+  background: white;
+  width: 100%;
+}
+.guided-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.guided-grid label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+.guided-grid .full {
+  grid-column: 1 / -1;
+}
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -334,6 +355,46 @@ input {
   display: flex;
   gap: 14px;
   align-items: center;
+}
+.admin {
+  max-width: 960px;
+  margin: auto;
+  padding: 52px 28px;
+}
+.admin h1 {
+  color: var(--sage-deep);
+  font-size: 58px;
+}
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin: 28px 0;
+}
+.metric-grid article,
+.eval-table article {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+.metric-grid span {
+  display: block;
+  color: var(--sage);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.metric-grid strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 34px;
+  font-family: Georgia, "Times New Roman", serif;
+}
+.eval-table {
+  display: grid;
+  gap: 14px;
 }
 @media (max-width: 860px) {
   .home {

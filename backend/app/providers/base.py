@@ -33,6 +33,8 @@ class ImageProvider(ABC):
 
 
 class TTSProvider(ABC):
+    content_type: str = "audio/mpeg"
+
     @abstractmethod
     async def narrate(self, text: str, language: str) -> bytes: ...
 

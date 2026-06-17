@@ -1,10 +1,8 @@
 # Infrastructure
 
 Terraform provisions Cloud Run services, a private asset bucket, Cloud SQL,
-Memorystore and a least-privilege backend service account. The runtime adapter
-implementations for Cloud SQL, Memorystore and GCS are intentionally bounded
-behind application interfaces; finish those adapters before exposing a
-production deployment to users.
+Memorystore and a least-privilege backend service account. Configure the
+application provider flags and secrets before sending production traffic.
 
 ```bash
 cd infra/terraform

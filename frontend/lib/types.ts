@@ -28,9 +28,28 @@ export type Story = {
   slug: string;
   status: string;
   public: boolean;
-  request: { prompt: string; vibe: string; language: string; age_band: string };
+  request: {
+    prompt: string;
+    vibe: string;
+    language: string;
+    age_band: string;
+    length?: string;
+    aspect_ratio?: string;
+    style_preset?: string;
+  };
   plan?: Plan;
   scenes: Scene[];
+};
+export type UsageSummary = {
+  stories_today: number;
+  images_today: number;
+  estimated_cost_usd_today: number;
+};
+export type EvalSummary = {
+  score: number;
+  threshold: number;
+  passed: boolean;
+  cases: { prompt: string; score: number; checks: Record<string, boolean> }[];
 };
 export type StreamEvent =
   | { type: "plan_ready"; data: { plan: Plan } }

@@ -7,7 +7,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-This launches the frontend, backend and development Postgres, Redis and MinIO services. The default application adapters remain deterministic local implementations.
+This launches the frontend, backend and development Postgres, Redis and MinIO services. The default application providers remain deterministic local implementations.
 
 ## Cloud Run With Terraform
 
@@ -15,7 +15,7 @@ This launches the frontend, backend and development Postgres, Redis and MinIO se
 2. Authenticate `gcloud`, configure Artifact Registry and build both container images.
 3. Export `GCP_PROJECT_ID`, `BACKEND_IMAGE` and `FRONTEND_IMAGE`.
 4. Run `terraform init` and `terraform apply` in `infra/terraform`.
-5. Implement and validate Vertex, GCS, Redis and Cloud SQL adapters, then set provider flags to managed modes.
+5. Set provider flags to managed modes and validate them with project credentials.
 
 Terraform enables Vertex AI, Cloud Run, Cloud SQL, Memorystore, Storage and Secret Manager services; provisions a GCS bucket, Postgres instance, Redis instance, two Cloud Run services and a restricted backend service account.
 

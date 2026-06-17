@@ -5,6 +5,7 @@ from uuid import uuid4
 from pathlib import Path
 
 from fastapi import APIRouter, Header, HTTPException, Request, Response
+from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 from pydantic import BaseModel
 
 from app.agents.pipeline import StoryPipeline
@@ -42,6 +43,8 @@ async def health() -> dict[str, str]:
 @router.post("/stories", response_model=StoryRecord)
 async def create_story(payload: PromptInput, request: Request) -> StoryRecord:
     repo, _ = dependencies(request)
+    if repo.count_today() >= request.app.state.settings.anonymous_daily_quota:
+        raise HTTPException(HTTP_429_TOO_MANY_REQUESTS, "Daily anonymous story quota reached.")
     base = re.sub(r"[^a-z0-9]+", "-", (payload.prompt or "-".join(payload.keywords) or "story").lower()).strip("-")[:38]
     story = StoryRecord(id=str(uuid4()), slug=f"{base or 'story'}-{uuid4().hex[:6]}", request=payload)
     return repo.save(story)
@@ -153,5 +156,6 @@ async def narration(story_id: str, request: Request) -> Response:
     if not story:
         raise HTTPException(404, "Story not found")
     text = " ".join(paragraph for scene in story.scenes for paragraph in scene.paragraphs)
-    audio = await request.app.state.tts.narrate(text, story.request.language)
-    return Response(audio, media_type="audio/mpeg")
+    tts = request.app.state.tts
+    audio = await tts.narrate(text, story.request.language)
+    return Response(audio, media_type=tts.content_type)

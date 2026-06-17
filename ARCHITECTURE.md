@@ -13,7 +13,7 @@ flowchart LR
   API --> SESSION["Five-minute session event buffer"]
 ```
 
-The local default uses deterministic mock providers and JSON/object-file storage. Production boundaries are kept explicit: provider interfaces, repository, media storage and session store can be exchanged independently.
+The local default uses deterministic providers and JSON/object-file storage. Provider interfaces, repository, media storage and session store can be exchanged independently.
 
 ## Data Model
 
@@ -34,7 +34,7 @@ The client connects to `/ws/{session_id}` after creating a record with `POST /ap
 
 | Type | Payload purpose |
 | --- | --- |
-| `plan_ready` | World, characters and outline for immediate scaffolding |
+| `plan_ready` | World, characters and outline for the initial story shell |
 | `character_sheet` | Reference-sheet URL for a stable hero preview |
 | `scene_text` | One paragraph for one scene |
 | `scene_image` | Signed/local URL of the rendered illustration |
@@ -43,7 +43,7 @@ The client connects to `/ws/{session_id}` after creating a record with `POST /ap
 | `error` | Friendly refusal or generation interruption |
 | `ping` | Connection liveness response |
 
-The in-memory event store retains the last five minutes for reconnect replay. A production deployment should back this contract with Redis.
+The in-memory event store retains the last five minutes for reconnect replay. Redis is the deployment target for this contract.
 
 ## Resilience And Controls
 
@@ -51,4 +51,4 @@ The in-memory event store retains the last five minutes for reconnect replay. A 
 
 ## Persistence Roadmap
 
-The app currently ships runnable local JSON and filesystem implementations. Replace these implementations with SQLAlchemy/Alembic against Cloud SQL, Redis session/pub-sub and GCS-signed URL objects for production; their existing interfaces avoid changes to API or frontend consumers.
+The app ships runnable local JSON and filesystem implementations. Cloud SQL and Redis can replace them behind the current repository and session interfaces.

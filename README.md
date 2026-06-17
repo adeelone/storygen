@@ -2,33 +2,33 @@
 
 <!-- Badges: CI | Eval Gate | License | Cloud Run -->
 
-**StoryGen turns a child's idea into a gentle four-scene illustrated story, assembled live on screen with consistent recurring characters.**
+**StoryGen turns a short prompt or guided form into a four-scene illustrated children's story.**
 
-StoryGen is a polished, mobile-first storybook application built around real-time generation: an outline appears first, paragraphs stream into each page, and illustrations settle in around a locked character design and visual style. It runs immediately with deterministic mock providers and exposes clean adapter boundaries for Gemini, Imagen, text-to-speech, safety and object storage.
+The app has a FastAPI backend, a Next.js frontend, WebSocket streaming, local deterministic providers for development, and optional Google Cloud provider adapters for deployments with credentials.
 
 ## Features
 
-- Three input modes: free text, keyword chips, and guided bedtime settings.
+- Three input modes: free text, keyword chips, and a guided form.
 - A four-act narrative plan with a world bible and explicit character sheets.
 - Live WebSocket events for plans, reference sheets, prose, images and completion.
 - Character consistency through reference-sheet renders, ordered token blocks, style locks and stable seeds.
 - Library, full-page reader, share links, narration control, PDF and ePub endpoints.
 - Friendly age-oriented screening, soft generation budgets and provider resilience primitives.
-- Mock-first local development, Docker Compose services and Terraform Cloud Run scaffolding.
+- Local development with deterministic providers, Docker Compose services and Terraform for Cloud Run.
 - Reproducible evaluation suite with JSON and Markdown reports.
 
 ## Install
 
 ### Docker
 
-Only Docker and one copied configuration file are needed for the local mock-provider experience:
+Only Docker and one copied configuration file are needed for local development:
 
 ```bash
 cp .env.example .env
 docker compose up --build
 ```
 
-Open `http://localhost:3000`. Cloud providers are disabled by default, so the first story requires no credentials.
+Open `http://localhost:3000`. Cloud providers are disabled by default, so the first story does not require credentials.
 
 ### Bare Metal
 
@@ -91,14 +91,14 @@ terraform apply -var="project_id=$GCP_PROJECT_ID" \
   -var="backend_image=$BACKEND_IMAGE" -var="frontend_image=$FRONTEND_IMAGE"
 ```
 
-Cloud deployment scaffolding is present. Live Vertex generation and managed storage/cache/database adapters must be completed and load-tested before production traffic.
+The Terraform files provision Cloud Run, Cloud SQL, Memorystore and GCS. Set the provider variables and install the backend cloud extras before using Vertex AI or GCS in production.
 
 ## Assumptions
 
-- Local development prioritizes a zero-credential magical first run using deterministic story and SVG illustration providers.
-- Google Gemini and Imagen are represented through stable adapter boundaries; the checked-in implementation intentionally falls back to local output until deployment credentials and Vertex calls are connected.
-- SQLite/Postgres, Redis resume storage, GCS/MinIO signed URLs, OAuth, TTS audio, administrative trend persistence and high-fidelity PDF layout are production extension points rather than completed managed integrations in this initial release.
-- Content strictness is applied to the youngest age band by rules; a cloud moderation provider can add richer classifications.
+- Local development uses deterministic text, SVG image and WAV narration providers.
+- `TEXT_PROVIDER=gemini`, `IMAGE_PROVIDER=imagen` and `STORAGE_PROVIDER=gcs` require Google Cloud credentials and `backend[cloud]`.
+- Anonymous local stories are stored in a JSON file. Cloud SQL and Redis are provisioned by Terraform but not required for local runs.
+- Content strictness is applied with rules; a cloud moderation provider can add richer classifications.
 
 ## Contributing
 

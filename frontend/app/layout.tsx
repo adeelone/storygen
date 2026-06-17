@@ -19,6 +19,7 @@ export default function RootLayout({
             StoryGen
           </Link>
           <Link href="/library">My stories</Link>
+          <Link href="/admin/usage">Usage</Link>
         </nav>
         {children}
       </body>

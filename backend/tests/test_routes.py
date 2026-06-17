@@ -54,3 +54,11 @@ def test_unknown_websocket_session_is_rejected(tmp_path: Path) -> None:
     client = TestClient(create_app(tmp_path))
     with client.websocket_connect("/ws/missing") as socket:
         assert socket.receive_json()["type"] == "error"
+
+
+def test_anonymous_quota_is_enforced(tmp_path: Path) -> None:
+    app = create_app(tmp_path)
+    app.state.settings.anonymous_daily_quota = 1
+    client = TestClient(app)
+    assert client.post("/api/v1/stories", json={"prompt": "first"}).status_code == 200
+    assert client.post("/api/v1/stories", json={"prompt": "second"}).status_code == 429

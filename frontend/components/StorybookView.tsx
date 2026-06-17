@@ -1,12 +1,12 @@
 "use client";
 
 import { Story } from "../lib/types";
+import { narrationUrl } from "../lib/api";
 import { SceneCard } from "./SceneCard";
 
 export function StorybookView({ story }: { story: Story }) {
   function narrate() {
-    const text = story.scenes.flatMap((scene) => scene.paragraphs).join(" ");
-    speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+    new Audio(narrationUrl(story.id)).play();
   }
   return (
     <main className="book">

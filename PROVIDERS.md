@@ -4,13 +4,13 @@
 
 | Capability | Local default | Intended managed adapter | Fallback |
 | --- | --- | --- | --- |
-| Text planning/prose | `MockTextProvider` | Gemini via Vertex AI | Mock text or cheaper configured model |
+| Text planning/prose | `MockTextProvider` | Gemini via Vertex AI | Mock text |
 | Illustration | `MockImageProvider` | Imagen via Vertex AI | Text-only story |
 | Safety | `RulesSafetyProvider` | Provider moderation plus rules | Rules |
-| Narration | Browser speech synthesis / mock boundary | Google Cloud TTS | Disabled narration |
+| Narration | WAV tone preview | Google Cloud TTS | Disabled narration |
 | Media storage | Local files | GCS signed URLs / MinIO development | Local media |
 
-Mock providers are intentionally deterministic and incur no network cost. Vertex and managed storage classes currently define integration boundaries and local fallback output; implement authenticated SDK calls before production use.
+Local providers are deterministic and incur no network cost. Gemini, Imagen and GCS providers use Google SDKs when the cloud extras and credentials are installed.
 
 ## Adding A Provider
 

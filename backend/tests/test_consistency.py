@@ -20,3 +20,12 @@ async def test_prompt_locks_style_and_character_tokens() -> None:
 def test_seed_is_deterministic() -> None:
     assert stable_seed("story", "hero") == stable_seed("story", "hero")
     assert stable_seed("story", "hero") != stable_seed("story", "friend")
+
+
+async def test_mock_provider_respects_language_and_length() -> None:
+    request = PromptInput(prompt="una estrella", language="Spanish", length="short")
+    provider = MockTextProvider()
+    plan = await provider.create_plan(request)
+    paragraphs = [paragraph async for paragraph in provider.stream_scene(plan, plan.scenes[0], request)]
+    assert len(paragraphs) == 1
+    assert "brújula" in paragraphs[0]

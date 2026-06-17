@@ -4,10 +4,9 @@ import { StorybookView } from "../components/StorybookView";
 
 describe("StorybookView", () => {
   it("provides a narration action", () => {
-    const speak = vi.fn();
-    vi.stubGlobal("speechSynthesis", { speak });
-    vi.stubGlobal("SpeechSynthesisUtterance", function (text: string) {
-      return { text };
+    const play = vi.fn();
+    vi.stubGlobal("Audio", function (url: string) {
+      return { play, url };
     });
     render(
       <StorybookView
@@ -27,6 +26,6 @@ describe("StorybookView", () => {
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Narrate aloud" }));
-    expect(speak).toHaveBeenCalled();
+    expect(play).toHaveBeenCalled();
   });
 });
