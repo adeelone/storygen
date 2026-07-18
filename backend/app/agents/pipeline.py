@@ -19,12 +19,18 @@ class StoryPipeline:
         safety: SafetyProvider,
         storage: LocalStorage,
         image_budget: int = 8,
+        signed_url_ttl_seconds: int = 900,
     ) -> None:
         self.text = text
         self.image = image
         self.safety = safety
         self.storage = storage
         self.image_budget = image_budget
+        self.signed_url_ttl_seconds = signed_url_ttl_seconds
+
+    def image_key(self, story_id: str, path: str, content_type: str) -> str:
+        extension = "png" if content_type == "image/png" else "svg"
+        return f"{story_id}/{path}.{extension}"
 
     async def generate(self, story: StoryRecord, emit: Emitter, cancelled: Callable[[], bool]) -> StoryRecord:
         started = time.perf_counter()
@@ -42,9 +48,9 @@ class StoryPipeline:
         for character in story.plan.characters:
             prompt = build_reference_prompt(character, story.plan.world.style_descriptor)
             generated = await self.image.render(prompt, stable_seed(story.id, character.id), "1:1")
-            key = f"{story.id}/characters/{character.id}.svg"
+            key = self.image_key(story.id, f"characters/{character.id}", generated.content_type)
             await self.storage.put(key, generated.content, generated.content_type)
-            character.reference_url = self.storage.signed_url(key, 900)
+            character.reference_url = self.storage.signed_url(key, self.signed_url_ttl_seconds)
             image_count += 1
             await emit(
                 StreamEvent(
@@ -79,9 +85,9 @@ class StoryPipeline:
                     story.request.aspect_ratio.value,
                     reference,
                 )
-                key = f"{story.id}/scenes/{outline.number}.svg"
+                key = self.image_key(story.id, f"scenes/{outline.number}", generated.content_type)
                 await self.storage.put(key, generated.content, generated.content_type)
-                scene.image_url = self.storage.signed_url(key, 900)
+                scene.image_url = self.storage.signed_url(key, self.signed_url_ttl_seconds)
                 image_count += 1
                 await emit(
                     StreamEvent(
@@ -103,7 +109,9 @@ class StoryPipeline:
     async def regenerate_image(self, story: StoryRecord, scene_number: int, tweak: str) -> Scene:
         if not story.plan:
             raise ValueError("The story has no plan.")
-        scene = next(scene for scene in story.scenes if scene.outline.number == scene_number)
+        scene = next((scene for scene in story.scenes if scene.outline.number == scene_number), None)
+        if not scene:
+            raise ValueError("Scene not found.")
         scene.image_prompt = build_scene_prompt(story.plan, scene.outline) + f"\nSMALL TWEAK: {tweak}"
         generated = await self.image.render(
             scene.image_prompt,
@@ -111,15 +119,17 @@ class StoryPipeline:
             story.request.aspect_ratio.value,
             story.plan.characters[0].reference_url,
         )
-        key = f"{story.id}/scenes/{scene_number}-reroll.svg"
+        key = self.image_key(story.id, f"scenes/{scene_number}-reroll", generated.content_type)
         await self.storage.put(key, generated.content, generated.content_type)
-        scene.image_url = self.storage.signed_url(key, 900)
+        scene.image_url = self.storage.signed_url(key, self.signed_url_ttl_seconds)
         return scene
 
     async def regenerate_scene(self, story: StoryRecord, scene_number: int) -> Scene:
         if not story.plan:
             raise ValueError("The story has no plan.")
-        scene = next(scene for scene in story.scenes if scene.outline.number == scene_number)
+        scene = next((scene for scene in story.scenes if scene.outline.number == scene_number), None)
+        if not scene:
+            raise ValueError("Scene not found.")
         scene.paragraphs = [
             paragraph async for paragraph in self.text.stream_scene(story.plan, scene.outline, story.request)
         ]

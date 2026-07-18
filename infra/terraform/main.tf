@@ -9,7 +9,8 @@ resource "google_project_service" "apis" {
     "sqladmin.googleapis.com",
     "redis.googleapis.com",
     "storage.googleapis.com",
-    "secretmanager.googleapis.com"
+    "secretmanager.googleapis.com",
+    "texttospeech.googleapis.com"
   ])
   service            = each.value
   disable_on_destroy = false
@@ -67,6 +68,12 @@ resource "google_project_iam_member" "vertex" {
   member  = "serviceAccount:${google_service_account.backend.email}"
 }
 
+resource "google_project_iam_member" "tts" {
+  project = var.project_id
+  role    = "roles/cloudtts.user"
+  member  = "serviceAccount:${google_service_account.backend.email}"
+}
+
 resource "google_storage_bucket_iam_member" "asset_writer" {
   bucket = google_storage_bucket.assets.name
   role   = "roles/storage.objectAdmin"
@@ -84,12 +91,22 @@ resource "google_cloud_run_v2_service" "backend" {
       env { name = "GOOGLE_CLOUD_PROJECT" value = var.project_id }
       env { name = "TEXT_PROVIDER" value = "gemini" }
       env { name = "IMAGE_PROVIDER" value = "imagen" }
+      env { name = "TTS_PROVIDER" value = "gcp" }
       env { name = "STORAGE_PROVIDER" value = "gcs" }
       env { name = "STORAGE_BUCKET" value = google_storage_bucket.assets.name }
       env { name = "REDIS_URL" value = "redis://${google_redis_instance.sessions.host}:6379/0" }
+      env { name = "ADMIN_KEY" value = var.admin_key }
     }
   }
   depends_on = [google_project_service.apis]
+}
+
+resource "google_cloud_run_v2_service_iam_member" "backend_public" {
+  count    = var.allow_public_backend ? 1 : 0
+  name     = google_cloud_run_v2_service.backend.name
+  location = var.region
+  role     = "roles/run.invoker"
+  member   = "allUsers"
 }
 
 resource "google_cloud_run_v2_service" "frontend" {

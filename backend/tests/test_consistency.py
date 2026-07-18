@@ -28,4 +28,4 @@ async def test_mock_provider_respects_language_and_length() -> None:
     plan = await provider.create_plan(request)
     paragraphs = [paragraph async for paragraph in provider.stream_scene(plan, plan.scenes[0], request)]
     assert len(paragraphs) == 1
-    assert "brújula" in paragraphs[0]
+    assert "br\u00fajula" in paragraphs[0]

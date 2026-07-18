@@ -2,11 +2,9 @@ import re
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
-from pathlib import Path
-
 from fastapi import APIRouter, Header, HTTPException, Request, Response
-from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 from pydantic import BaseModel
+from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 
 from app.agents.pipeline import StoryPipeline
 from app.db import StoryRepository
@@ -31,8 +29,15 @@ def dependencies(request: Request) -> tuple[StoryRepository, StoryPipeline]:
 
 def check_admin(request: Request, admin_key: str | None) -> None:
     expected = request.app.state.settings.admin_key
+    if request.app.state.settings.app_env == "production" and not expected:
+        raise HTTPException(503, "ADMIN_KEY must be configured in production.")
     if expected and admin_key != expected:
         raise HTTPException(403, "Administrator access required")
+
+
+def require_feature(request: Request, enabled: bool, name: str) -> None:
+    if not enabled:
+        raise HTTPException(404, f"{name} is disabled.")
 
 
 @router.get("/health")
@@ -69,6 +74,7 @@ async def get_story(story_id: str, request: Request) -> StoryRecord:
 
 @router.post("/stories/{story_id}/share", response_model=StoryRecord)
 async def share_story(story_id: str, payload: ShareRequest, request: Request) -> StoryRecord:
+    require_feature(request, request.app.state.settings.enable_public_sharing, "Public sharing")
     repo, _ = dependencies(request)
     story = repo.get(story_id)
     if not story:
@@ -80,6 +86,7 @@ async def share_story(story_id: str, payload: ShareRequest, request: Request) ->
 
 @router.delete("/stories/{story_id}/share", response_model=StoryRecord)
 async def revoke_share(story_id: str, request: Request) -> StoryRecord:
+    require_feature(request, request.app.state.settings.enable_public_sharing, "Public sharing")
     repo, _ = dependencies(request)
     story = repo.get(story_id)
     if not story:
@@ -90,6 +97,7 @@ async def revoke_share(story_id: str, request: Request) -> StoryRecord:
 
 @router.get("/shares/{slug}", response_model=StoryRecord)
 async def public_story(slug: str, request: Request) -> StoryRecord:
+    require_feature(request, request.app.state.settings.enable_public_sharing, "Public sharing")
     repo, _ = dependencies(request)
     story = repo.get_by_slug(slug)
     expired = story and story.share_expires_at and story.share_expires_at < datetime.now(UTC)
@@ -104,7 +112,10 @@ async def reroll_image(story_id: str, scene_number: int, payload: ImageReroll, r
     story = repo.get(story_id)
     if not story:
         raise HTTPException(404, "Story not found")
-    await pipeline.regenerate_image(story, scene_number, payload.tweak)
+    try:
+        await pipeline.regenerate_image(story, scene_number, payload.tweak)
+    except (StopIteration, ValueError):
+        raise HTTPException(404, "Scene not found or not ready") from None
     return repo.save(story)
 
 
@@ -114,12 +125,16 @@ async def regenerate_scene(story_id: str, scene_number: int, request: Request) -
     story = repo.get(story_id)
     if not story:
         raise HTTPException(404, "Story not found")
-    await pipeline.regenerate_scene(story, scene_number)
+    try:
+        await pipeline.regenerate_scene(story, scene_number)
+    except (StopIteration, ValueError):
+        raise HTTPException(404, "Scene not found or not ready") from None
     return repo.save(story)
 
 
 @router.get("/stories/{story_id}/export.pdf")
 async def pdf(story_id: str, request: Request) -> Response:
+    require_feature(request, request.app.state.settings.enable_pdf_export, "PDF export")
     repo, _ = dependencies(request)
     story = repo.get(story_id)
     if not story:
@@ -129,6 +144,7 @@ async def pdf(story_id: str, request: Request) -> Response:
 
 @router.get("/stories/{story_id}/export.epub")
 async def epub(story_id: str, request: Request) -> Response:
+    require_feature(request, request.app.state.settings.enable_pdf_export, "ePub export")
     repo, _ = dependencies(request)
     story = repo.get(story_id)
     if not story:
@@ -145,12 +161,14 @@ async def usage(request: Request, x_admin_key: str | None = Header(default=None)
 
 @router.get("/admin/eval")
 async def evaluation(request: Request, x_admin_key: str | None = Header(default=None)) -> dict[str, object]:
+    require_feature(request, request.app.state.settings.enable_eval_dashboard, "Evaluation dashboard")
     check_admin(request, x_admin_key)
-    return await run_eval(Path("reports"))
+    return await run_eval(request.app.state.data_root / "reports")
 
 
 @router.post("/stories/{story_id}/narration")
 async def narration(story_id: str, request: Request) -> Response:
+    require_feature(request, request.app.state.settings.enable_tts, "Narration")
     repo, _ = dependencies(request)
     story = repo.get(story_id)
     if not story:

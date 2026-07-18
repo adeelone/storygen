@@ -32,7 +32,7 @@ Open `http://localhost:3000`. Cloud providers are disabled by default, so the fi
 
 ### Bare Metal
 
-Requires Python 3.12 and Node.js 20:
+Requires Python 3.12 and Node.js 20.19 or newer:
 
 ```bash
 cp .env.example .env
@@ -91,13 +91,14 @@ terraform apply -var="project_id=$GCP_PROJECT_ID" \
   -var="backend_image=$BACKEND_IMAGE" -var="frontend_image=$FRONTEND_IMAGE"
 ```
 
-The Terraform files provision Cloud Run, Cloud SQL, Memorystore and GCS. Set the provider variables and install the backend cloud extras before using Vertex AI or GCS in production.
+The Terraform files provision Cloud Run, Cloud SQL, Memorystore and GCS. The backend image installs the cloud provider extras, exposes the backend for browser API/WebSocket traffic, and requires `ADMIN_KEY` for admin routes in production.
 
 ## Assumptions
 
 - Local development uses deterministic text, SVG image and WAV narration providers.
 - `TEXT_PROVIDER=gemini`, `IMAGE_PROVIDER=imagen` and `STORAGE_PROVIDER=gcs` require Google Cloud credentials and `backend[cloud]`.
 - Anonymous local stories are stored in a JSON file. Cloud SQL and Redis are provisioned by Terraform but not required for local runs.
+- The current application repository is JSON-backed. Production deployments should wire `DATABASE_URL` to Cloud SQL through a SQLAlchemy repository before relying on long-term story persistence.
 - Content strictness is applied with rules; a cloud moderation provider can add richer classifications.
 
 ## Contributing

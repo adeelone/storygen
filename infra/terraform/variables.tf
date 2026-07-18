@@ -13,3 +13,12 @@ variable "allow_public_frontend" {
   type    = bool
   default = true
 }
+variable "allow_public_backend" {
+  type    = bool
+  default = true
+}
+variable "admin_key" {
+  type      = string
+  default   = ""
+  sensitive = true
+}

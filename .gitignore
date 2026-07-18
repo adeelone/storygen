@@ -26,6 +26,8 @@ htmlcov/
 .coverage*
 *.egg-info/
 .test-tmp/
+.test-work/
+.pytest-tmp-root/
 pytest-cache-files-*/
 
 # Node / Next

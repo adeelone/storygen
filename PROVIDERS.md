@@ -7,10 +7,10 @@
 | Text planning/prose | `MockTextProvider` | Gemini via Vertex AI | Mock text |
 | Illustration | `MockImageProvider` | Imagen via Vertex AI | Text-only story |
 | Safety | `RulesSafetyProvider` | Provider moderation plus rules | Rules |
-| Narration | WAV tone preview | Google Cloud TTS | Disabled narration |
+| Narration | WAV tone preview | Google Cloud Text-to-Speech | Disabled narration |
 | Media storage | Local files | GCS signed URLs / MinIO development | Local media |
 
-Local providers are deterministic and incur no network cost. Gemini, Imagen and GCS providers use Google SDKs when the cloud extras and credentials are installed.
+Local providers are deterministic and incur no network cost. Gemini, Imagen, Google Cloud Text-to-Speech and GCS providers use Google SDKs when the cloud extras and credentials are installed. In production, selecting a managed Google provider without `GOOGLE_CLOUD_PROJECT` fails startup instead of silently falling back to mocks.
 
 ## Adding A Provider
 

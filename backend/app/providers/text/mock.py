@@ -121,20 +121,20 @@ class MockTextProvider(TextProvider):
         }
         spanish = {
             1: [
-                f"En {plan.world.setting}, {lead} guardó una brújula pequeña mientras la lámpara de {friend} cantaba suave.",
+                f"En {plan.world.setting}, {lead} guard\u00f3 una br\u00fajula peque\u00f1a mientras la l\u00e1mpara de {friend} cantaba suave.",
                 "Juntos recogieron hojas plateadas para que la noche se sintiera tranquila y luminosa.",
             ],
             2: [
-                "Entonces un viento juguetón llevó la llama dorada al otro lado del arroyo.",
-                f'"Podemos traerla a casa", dijo {lead}, y {friend} brilló dos veces para decir que sí.',
+                "Entonces un viento juguet\u00f3n llev\u00f3 la llama dorada al otro lado del arroyo.",
+                f'"Podemos traerla a casa", dijo {lead}, y {friend} brill\u00f3 dos veces para decir que s\u00ed.',
             ],
             3: [
-                f"En la colina, {lead} sostuvo la brújula firme mientras {friend} protegía la llama del viento.",
-                "Paso a paso, sus dos luces se unieron en un resplandor que no se apagó.",
+                f"En la colina, {lead} sostuvo la br\u00fajula firme mientras {friend} proteg\u00eda la llama del viento.",
+                "Paso a paso, sus dos luces se unieron en un resplandor que no se apag\u00f3.",
             ],
             4: [
-                "De vuelta en el claro, la llama saltó de farol en farol hasta llenar las ramas de estrellas.",
-                f"{lead} sonrió a {friend}. La valentía brilla más cuando los amigos la comparten.",
+                "De vuelta en el claro, la llama salt\u00f3 de farol en farol hasta llenar las ramas de estrellas.",
+                f"{lead} sonri\u00f3 a {friend}. La valent\u00eda brilla m\u00e1s cuando los amigos la comparten.",
             ],
         }
         paragraphs = (spanish if request.language.lower().startswith("spanish") else english)[scene.number]

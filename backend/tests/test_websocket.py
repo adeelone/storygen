@@ -1,12 +1,11 @@
-from pathlib import Path
-
 from fastapi.testclient import TestClient
 
 from app.main import create_app
+from tests.helpers import workspace_tmp
 
 
-def test_prompt_streams_complete_story(tmp_path: Path) -> None:
-    client = TestClient(create_app(tmp_path))
+def test_prompt_streams_complete_story() -> None:
+    client = TestClient(create_app(workspace_tmp("websocket-complete")))
     story = client.post("/api/v1/stories", json={"prompt": "a squirrel and a robot save lantern light"}).json()
     events: list[str] = []
     with client.websocket_connect(f"/ws/{story['id']}") as socket:
